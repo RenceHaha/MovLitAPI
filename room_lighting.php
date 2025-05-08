@@ -205,7 +205,7 @@ function deviceControl($data) {
     $statement->bind_param("iii", $light_state, $is_used, $room_id);
 
     if ($statement->execute()) {
-        logLightChange($room_id, $data['account_id'], $light_state);
+        logLightChange($room_id, $data['account_id'], $is_used);
         echo json_encode(['success' => true, 'message' => 'Device control executed successfully']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to execute device control']);
