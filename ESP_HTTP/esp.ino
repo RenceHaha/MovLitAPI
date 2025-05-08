@@ -130,9 +130,10 @@ void loop() {
           Serial.print("Room 1 state: ");
           Serial.println(room1State);
 
+          // In your loop function, fix this part:
           if (current1Time - lastUpdateTime >= updateInterval) {
             sendRoom1Data(room1State);
-            lastUpdateTime1 = current1Time;
+            lastUpdateTime = current1Time;  // Fix: use lastUpdateTime instead of lastUpdateTime1
           }
         }
       }
@@ -224,34 +225,51 @@ void sendRoom1Data(bool light_state) {
     // Create JSON object
     StaticJsonDocument<200> jsonDoc;
     jsonDoc["room_id"] = 1;
-    jsonDoc["light_state"] = light_state;
+    jsonDoc["light_state"] = light_state ? 1 : 0;  // Convert boolean to integer (1/0)
     jsonDoc["account_id"] = account_id;
 
     String requestBody;
     serializeJson(jsonDoc, requestBody);
+    
+    // Print the request body for debugging
+    Serial.print("Sending request: ");
+    Serial.println(requestBody);
 
     int httpResponseCode = http.POST(requestBody);
+    
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
 
     if (httpResponseCode > 0) {
       String response = http.getString();
+      Serial.print("Server response: ");
       Serial.println(response);
 
-      // Parse JSON response
-      StaticJsonDocument<200> responseDoc;
-      DeserializationError error = deserializeJson(responseDoc, response);
+      // Only try to parse if we have a response
+      if (response.length() > 0) {
+        // Parse JSON response
+        StaticJsonDocument<200> responseDoc;
+        DeserializationError error = deserializeJson(responseDoc, response);
 
-      if (!error) {
-        bool success = responseDoc["success"];
-        String message = responseDoc["message"];
+        if (!error) {
+          bool success = responseDoc["success"];
+          String message = responseDoc["message"];
 
-        if (success) {
-          Serial.println(message);
+          if (success) {
+            Serial.println("Success: " + message);
+          } else {
+            Serial.println("Error: " + message);
+          }
         } else {
-          Serial.print(message);
+          Serial.print("JSON parsing failed: ");
+          Serial.println(error.c_str());
         }
+      } else {
+        Serial.println("Empty response from server");
       }
     } else {
-      Serial.println("Error on HTTP request");
+      Serial.print("Error on HTTP request. Error code: ");
+      Serial.println(httpResponseCode);
     }
     http.end();
   } else {

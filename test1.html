@@ -11,16 +11,19 @@
 <script>
     async function fetchBikes() {
             try {
-                const response = await fetch('./schedules.php', {
+                const response = await fetch('./rooms_lighting.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        account_id: 1,
-                        action: 'get'
+                        action: 'device_control',
+                        room_id: 1,
+                        light_state: 1,
+                        account_id: 2
                     })
-                });
+                });  
+
                 const responseText = await response.text();
                 
                 try {
