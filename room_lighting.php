@@ -41,13 +41,17 @@ function verifyUser($data) {
 
     if (!isset($data['account_id'])) {
         echo json_encode(['success' => false, 'message' => 'Account ID missing']);
-        return "Account ID missing";
+        return "Unauthorized";
     }
 
     $account_id = $data['account_id'];
 
     $sql = "SELECT access FROM account_tbl WHERE account_id = ?";
     $statement = $conn->prepare($sql);
+    if (!$statement) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        return "Unauthorized";
+    }
     $statement->bind_param("i", $account_id);
     $statement->execute();
     $result = $statement->get_result();
@@ -64,7 +68,7 @@ function verifyUser($data) {
 function overrideLight($data, $access) {
     global $conn;
 
-    if (!isset($data['room_id'], $data['light_state'])) {
+    if (!isset($data['room_id'], $data['light_state'], $data['account_id'])) {
         echo json_encode(['success' => false, 'message' => 'Missing parameters']);
         return;
     }
@@ -76,6 +80,10 @@ function overrideLight($data, $access) {
     // Check the latest log for this room
     $sql = "SELECT account_id, set_to_state, log_date FROM lighting_logs WHERE room_id = ? ORDER BY log_date DESC LIMIT 1";
     $statement = $conn->prepare($sql);
+    if (!$statement) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        return;
+    }
     $statement->bind_param("i", $room_id);
     $statement->execute();
     $result = $statement->get_result();
@@ -102,6 +110,10 @@ function overrideLight($data, $access) {
     // Update the light state
     $sql = "UPDATE room_lighting SET light_state = ?, set_to_state = ? WHERE room_id = ?";
     $statement = $conn->prepare($sql);
+    if (!$statement) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        return;
+    }
     $statement->bind_param("iii", $light_state, $light_state, $room_id);
 
     if ($statement->execute()) {
@@ -125,6 +137,10 @@ function resetOverride($data) {
 
     $sql = "UPDATE room_lighting SET set_to_state = 0 WHERE room_id = ?";
     $statement = $conn->prepare($sql);
+    if (!$statement) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        return;
+    }
     $statement->bind_param("i", $room_id);
 
     if ($statement->execute()) {
@@ -140,6 +156,10 @@ function logLightChange($room_id, $account_id, $light_state) {
 
     $sql = "INSERT INTO lighting_logs (room_id, account_id, set_to_state) VALUES (?, ?, ?)";
     $statement = $conn->prepare($sql);
+    if (!$statement) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        return;
+    }
     $statement->bind_param("iii", $room_id, $account_id, $light_state);
     $statement->execute();
     $statement->close();
@@ -150,6 +170,10 @@ function getAccessLevel($account_id) {
 
     $sql = "SELECT access FROM account_tbl WHERE account_id = ?";
     $statement = $conn->prepare($sql);
+    if (!$statement) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        return null;
+    }
     $statement->bind_param("i", $account_id);
     $statement->execute();
     $result = $statement->get_result();
@@ -163,7 +187,7 @@ function getAccessLevel($account_id) {
 function deviceControl($data) {
     global $conn;
 
-    if (!isset($data['room_id'], $data['light_state'])) {
+    if (!isset($data['room_id'], $data['light_state'], $data['account_id'])) {
         echo json_encode(['success' => false, 'message' => 'Missing parameters']);
         return;
     }
@@ -173,6 +197,10 @@ function deviceControl($data) {
 
     $sql = "UPDATE room_lighting SET light_state = ?, set_to_state = ? WHERE room_id = ?";
     $statement = $conn->prepare($sql);
+    if (!$statement) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        return;
+    }
     $statement->bind_param("iii", $light_state, $light_state, $room_id);
 
     if ($statement->execute()) {
