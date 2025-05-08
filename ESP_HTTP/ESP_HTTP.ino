@@ -130,7 +130,7 @@ void loop() {
     if (pir1State == HIGH) {
         if (room1Auto) {
             digitalWrite(LED1, HIGH);  // Turn LED on
-            sendHttpRequest(1, true);  // Correctly uses roomId 1
+            sendHttpRequest(1, true);
         }
         motionDetectedTime1 = millis();  // Record the time when motion is detected
         Serial.println("MOTION DETECTED IN ROOM 1");
@@ -139,7 +139,7 @@ void loop() {
         if (millis() - motionDetectedTime1 >= timeoutDuration) {
             if (room1Auto) {
                 digitalWrite(LED1, LOW);  // Turn LED off if timeout exceeded
-                sendHttpRequest(1, false);  // Correctly uses roomId 1
+                sendHttpRequest(1, false);
             }
             Serial.println("NO MOTION DETECTED IN ROOM 1");
         }
@@ -175,18 +175,13 @@ void sendHttpRequest(int roomId, bool lightState) {
 
         http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        // Prepare the POST data
-        String postData = "action=device_control&room_id=" + String(roomId) + "&light_state=" + String(lightState ? 1 : 0);
+        String postData = "action=device_control&device_id=2&room_id=" + String(roomId) + "&light_state=" + String(lightState ? 1 : 0);
 
         int httpResponseCode = http.POST(postData);
 
         if (httpResponseCode > 0) {
             String response = http.getString();
-            if (response.length() > 0) {
-                Serial.println("Response: " + response);
-            } else {
-                Serial.println("Warning: Received empty response");
-            }
+            Serial.println("Response: " + response);
         } else {
             Serial.println("Error on sending POST: " + String(httpResponseCode));
         }

@@ -194,14 +194,15 @@ function deviceControl($data) {
 
     $room_id = $data['room_id'];
     $light_state = $data['light_state'];
+    $is_used = $data['is_used']; 
 
-    $sql = "UPDATE room_lighting SET light_state = ?, set_to_state = ? WHERE room_id = ?";
+    $sql = "UPDATE room_lighting SET light_state = ?, is_used = ? WHERE room_id = ?";
     $statement = $conn->prepare($sql);
     if (!$statement) {
         echo json_encode(['success' => false, 'message' => 'Database error']);
         return;
     }
-    $statement->bind_param("iii", $light_state, $light_state, $room_id);
+    $statement->bind_param("iii", $light_state, $is_used, $room_id);
 
     if ($statement->execute()) {
         logLightChange($room_id, $data['account_id'], $light_state);
