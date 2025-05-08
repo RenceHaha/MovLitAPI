@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+</body>
+<script>
+    async function fetchBikes() {
+            try {
+                const response = await fetch('./schedules.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        account_id: 1,
+                        action: 'get'
+                    })
+                });
+                const responseText = await response.text();
+                
+                try {
+                    const data = JSON.parse(responseText);
+                    
+                    if (data.success) {
+                        console.log(data)
+                    } else {
+                        console.error('Server returned error:', responseText);
+                    }
+                } catch (parseError) {
+                    console.error('Failed to parse JSON response:', parseError);
+                    console.log('Raw response:', responseText);
+                }
+            } catch (fetchError) {
+                console.error('Fetch error:', fetchError);
+            }
+        }
+
+        fetchBikes();
+</script>
+</html>
